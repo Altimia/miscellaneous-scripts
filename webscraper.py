@@ -1,15 +1,30 @@
-import requests
+import time
+from selenium import webdriver
 from bs4 import BeautifulSoup
-import re
 
-url = 'Enter your URL here'
-response = requests.get(url)
+driver = webdriver.Firefox()
 
-soup = BeautifulSoup(response.text, 'html.parser')
+def get_links():
+    with open('links.txt', 'r') as f:
+        links = f.read().splitlines()
+    return links
 
-# Use a regular expression to find strings of exactly 40 hexadecimal characters
-hex_strings = re.findall(r'[0-9a-fA-F]{40}', soup.text)
+def write_to_file(filename, data):
+    with open(filename, 'a') as f:
+        f.write(data + '\n')
 
-with open('hex_strings.txt', 'w') as f:
-    for string in hex_strings:
-        f.write(f'{string}\n')
+links = get_links()
+
+for i, link in enumerate(links, 1):
+    driver.get(link)
+    time.sleep(2)  # wait for javascript to load
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+    strong_tag = soup.select_one('strong.text-muted.svelte-aoq06a')
+    if strong_tag:
+        write_to_file('out.txt', strong_tag.text)
+    else:
+        write_to_file('no-string-links.txt', link)
+    print(f'Processed {i} of {len(links)} links.')
+
+driver.quit()
