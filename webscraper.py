@@ -9,6 +9,7 @@ def get_links():
         links = f.read().splitlines()
     return links
 
+# Write File
 def write_to_file(filename, data):
     with open(filename, 'a') as f:
         f.write(data + '\n')
